@@ -164,18 +164,18 @@ def int_parameter(level, maxval):
   return int(level * maxval / PARAMETER_MAX)
 
 
-def pil_wrap(img, use_mean_std):
-  """Convert the `img` numpy tensor to a PIL Image."""
+# def pil_wrap(img, use_mean_std):
+#   """Convert the `img` numpy tensor to a PIL Image."""
 
-  if use_mean_std:
-    MEANS, STDS = get_mean_and_std()
-  else:
-    MEANS = [0, 0, 0]
-    STDS = [1, 1, 1]
-  img_ori = (img * STDS + MEANS) * 255
+#   if use_mean_std:
+#     MEANS, STDS = get_mean_and_std()
+#   else:
+#     MEANS = [0, 0, 0]
+#     STDS = [1, 1, 1]
+#   img_ori = (img * STDS + MEANS) * 255
 
-  return Image.fromarray(
-      np.uint8((img * STDS + MEANS) * 255.0)).convert('RGBA')
+#   return Image.fromarray(
+#       np.uint8((img * STDS + MEANS) * 255.0)).convert('RGBA')
 
 
 def pil_unwrap(pil_img, use_mean_std, img_shape):
@@ -205,15 +205,16 @@ def apply_policy(policy, img, use_mean_std=True):
   Returns:
     The result of applying `policy` to `img`.
   """
+  # Make sure input img has values 0..255
   img_shape = img.shape
-  pil_img = pil_wrap(img, use_mean_std)
+#   pil_img = pil_wrap(img, use_mean_std)
   for xform in policy:
     assert len(xform) == 3
     name, probability, level = xform
     xform_fn = NAME_TO_TRANSFORM[name].pil_transformer(
         probability, level, img_shape)
-    pil_img = xform_fn(pil_img)
-  return pil_unwrap(pil_img, use_mean_std, img_shape)
+    img = xform_fn(img)
+  return pil_unwrap(img, use_mean_std, img_shape)
 
 
 class TransformFunction(object):
